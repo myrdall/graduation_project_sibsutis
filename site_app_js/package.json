@@ -1,0 +1,16 @@
+{
+  "name": "site_app_js",
+  "version": "1.0.0",
+  "description": "web app for studio",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Aleksey Goryachev",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.1",
+    "mysql2": "^3.9.2",
+    "sequelize": "^6.37.1"
+  }
+}
