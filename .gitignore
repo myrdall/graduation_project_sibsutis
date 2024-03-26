@@ -2,6 +2,10 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=node,visualstudiocode,python,pycharm+all
 
 ### Node ###
+
+site_app_js/config.js
+
+
 # Logs
 logs
 *.log
