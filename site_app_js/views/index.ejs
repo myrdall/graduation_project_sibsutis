@@ -7,9 +7,18 @@
     <title>Document</title>
 </head>
 <body>
-    <h1>Hello World</h1>
-    <div id="counter"></div>
-    <a href="/booking">Пререйти к бронированию</a>
+    <%- include ('blocks/header')-%>
+    <main class="main-content">
+        <h1>Добро пожаловать на наш сайт!</h1>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ad accusantium totam dolore minima enim quae maxime voluptate eum deleniti, laboriosam, tempora id nostrum repellendus quis? Adipisci molestias similique officiis accusantium.</p>
+        <div id="counter"></div>
+        <a href="/booking">Пререйти к бронированию</a>
+
+
+    </main>
+
+    <%- include('blocks/footer') -%>
+
 
     <script src="scripts/test.js"></script>
 </body>

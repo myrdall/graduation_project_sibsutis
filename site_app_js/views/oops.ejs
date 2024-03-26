@@ -3,10 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/style.css">
     <title>OOOPS!</title>
 </head>
 <body>
-     <div style="display: flex; justify-content: center; align-items: center; height: 90vh;"><img src="/img/404.jpg" alt=""></div>
-     <div style="display: flex; justify-content: center;"><a href="/"> Вернуться на главную</a></div>
+    <%- include ('blocks/header')-%>
+    <main class="main-content">
+        <div style="display: flex; justify-content: center; align-items: center; height: 7  0vh;"><img src="/img/404.jpg" alt=""></div>
+        <div style="display: flex; justify-content: center;"><a href="/"> Вернуться на главную</a></div>
+    </main>
+    <%- include('blocks/footer') -%>
 </body>
 </html>
