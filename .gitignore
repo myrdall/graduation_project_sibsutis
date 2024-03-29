@@ -422,3 +422,4 @@ pyrightconfig.json
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/node,visualstudiocode,python,pycharm+all 
+site_app_js/config.js
