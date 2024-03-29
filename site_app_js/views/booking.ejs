@@ -9,10 +9,57 @@
 <body>
     <%- include ('blocks/header')-%>
     <main class="main-content">
+
+        <% bookingsByHall.forEach(hallBookings => { %>
+            <h2>Зал №<%= hallBookings.hall.room_number %></h2>
+            <table border="1">
+                <tr>
+                    <th>Дата</th>
+                    <th>Время начала</th>
+                    <th>Время окончания</th>
+                    <th>Статус бронирования</th>
+                </tr>
+                <% hallBookings.bookings.forEach(booking => { %>
+                    <tr>
+                        <td><%= new Intl.DateTimeFormat('ru-RU').format(new Date(booking.booking_date)) %></td>
+                        <td><%= booking.start_time %></td>
+                        <td><%= booking.end_time %></td>
+                        <td><%= booking.booking_status === 'booked' ? 'Забронировано' : 'Отменено' %></td>
+                    </tr>
+                <% }); %>
+            </table>
+        <% }); %>
+          
+
+          <button id="prevWeek">Предыдущая неделя</button>
+          <button id="nextWeek">Следующая неделя</button> <br>
+
+          <h1>Бронирование</h1>
+          <form action="/bookingcheck" method="POST">
+            <label for="roomNumber">Номер зала:</label>
+            <input type="text" name="roomNumber" id="roomNumber" required><br><br>
+            <label for="bookingDate">Дата бронирования:</label>
+            <input type="date" name="bookingDate" id="bookingDate" required><br><br>
+            <label for="startTime">Время начала:</label>
+            <input type="time" name="startTime" id="startTime" required><br><br>
+            <label for="endTime">Время окончания:</label>
+            <input type="time" name="endTime" id="endTime" required><br><br>
+            <label for="fullName">Ваше имя:</label>
+            <input type="text" name="fullName" id="fullName" required><br><br>
+            <label for="phone">Номер телефона:</label>
+            <input type="tel" name="phone" id="phone" required><br><br>
+            <label for="email">Email:</label>
+            <input type="email" name="email" id="email" required><br><br>
+            <input type="submit" value="Забронировать">
+          </form>
+        
+
         <a href="/">Назад</a>
     </main>
     
     
     <%- include('blocks/footer') -%>
+
+    
 </body>
 </html>
