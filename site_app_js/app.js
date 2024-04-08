@@ -58,7 +58,7 @@ app.get('/booking', async (req, res) => {
     const bookingsByHall = [];
     for (const hall of halls) {
         const [bookings] = await connection.query(
-            'SELECT * FROM bookings WHERE booking_date >= ? AND booking_date <= ? AND room_id = ?', 
+            'SELECT * FROM bookings WHERE booking_date >= ? AND booking_date <= ? AND room_id = ? ORDER BY booking_date, start_time', 
             [startOfWeek.toISOString().split('T')[0],
              endOfWeek.toISOString().split('T')[0],
              hall.id]
@@ -72,23 +72,14 @@ app.get('/booking', async (req, res) => {
 
 
 // Обработка POST запроса для бронирования
-app.post('/bookingcheck', (req, res) => {
+app.post('/bookingcheck', async(req, res) => {
     const { roomNumber, bookingDate, startTime, endTime, fullName, phone, email } = req.body;
     console.log(req.body);
-
-
-    
-
-
-
     // Проверяем, существует ли пользователь в базе данных
-    connection.query('SELECT id FROM clients WHERE full_name = ?', [fullName], (err, results) => {
+    connection.query('SELECT id FROM clients WHERE full_name = ? AND email = ?', [fullName, email], (err, results) => {
       if (err) throw err;
   
       let clientId;
-
-      
-  
       // Если пользователь не найден, добавляем его в базу данных
       if (results.length === 0) {
         console.log('Пользователя нет в БД. Добавляем нового')

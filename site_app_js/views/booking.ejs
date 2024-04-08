@@ -35,7 +35,7 @@
           <button id="nextWeek">Следующая неделя</button> <br>
 
           <h1>Бронирование</h1>
-          <form action="/bookingcheck" method="POST">
+          <form action="/bookingcheck" method="POST" id="bookingForm">
             <label for="roomNumber">Номер зала:</label>
             <input type="text" name="roomNumber" id="roomNumber" required><br><br>
             <label for="bookingDate">Дата бронирования:</label>
@@ -52,11 +52,39 @@
             <input type="email" name="email" id="email" required><br><br>
             <input type="submit" value="Забронировать">
           </form>
+
+          <div id="responseDiv"></div>
         
 
         <a href="/">Назад</a>
     </main>
     
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  $(document).ready(function() {
+    $('#bookingForm').submit(function(event) {
+      event.preventDefault(); // Предотвращаем отправку формы по умолчанию
+
+      $.ajax({
+        type: 'POST',
+        url: '/bookingcheck',
+        data: $(this).serialize(),
+        success: function(response) {
+          $('#responseDiv').html(response); // Выводим ответ от сервера в div
+          setTimeout(function() {
+            location.reload(); // Обновляем страницу через 2 секунды
+          }, 2000);
+        },
+        error: function(xhr, status, error) {
+          alert('Произошла ошибка: ' + error); // Показываем сообщение об ошибке
+        }
+      });
+    });
+  });
+</script>
+
+<div id="responseDiv"></div>
+
     
     <%- include('blocks/footer') -%>
 
