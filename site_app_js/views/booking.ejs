@@ -12,44 +12,47 @@
 
 
         <h1>Booking Schedule</h1>
+        <label for="hall-select">Select a Hall:</label>
+        <select id="hall-select">
         <% schedule.forEach(roomSchedule => { %>
-            <h2>Room Number: <%= roomSchedule.hall.room_number %></h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th> </th>
-                        <% roomSchedule.scheduleForHall.forEach(daySchedule => { %>
-                            <% const date = new Date(daySchedule.date); %>
-                            <% const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear().toString().slice(-2)}`; %>
-                            <th><%= formattedDate %></th>
-                        <% }); %>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% for (let hour = 9; hour <= 22; hour++) { %>
-                        <tr>
-                            <td><%= hour %>:00</td>
-                            <% roomSchedule.scheduleForHall.forEach(daySchedule => { %>
-                                <% const isAvailable = daySchedule.scheduleForDate.some(slot => slot.availableSlots.includes(hour)); %>
-                                <td class="<%= isAvailable ? 'available' : 'booked' %>"></td>
-                            <% }); %>
-                        </tr>
-                    <% } %>
-                </tbody>
-            </table>
+            <option value="<%= roomSchedule.hall.id %>"><%= roomSchedule.hall.room_number %></option>
         <% }); %>
+        </select>
+        <div id="schedule-tables">
+            <% schedule.forEach(roomSchedule => { %>
+                <div id="schedule-table-<%= roomSchedule.hall.id %>" class="schedule-table" style="display: none;">
+                    <h2>Room Number: <%= roomSchedule.hall.room_number %></h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th> </th>
+                                <% roomSchedule.scheduleForHall.forEach(daySchedule => { %>
+                                    <% const date = new Date(daySchedule.date); %>
+                                    <% const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear().toString().slice(-2)}`; %>
+                                    <th><%= formattedDate %></th>
+                                <% }); %>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% for (let hour = 9; hour <= 22; hour++) { %>
+                                <tr>
+                                    <td><%= hour %>:00</td>
+                                    <% roomSchedule.scheduleForHall.forEach(daySchedule => { %>
+                                        <% const isAvailable = daySchedule.scheduleForDate.some(slot => slot.availableSlots.includes(hour)); %>
+                                        <td class="<%= isAvailable ? 'available' : 'booked' %>"></td>
+                                    <% }); %>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            <% }); %>
+        </div>
         
-
+        <div id="booking-info">Selected booking time: </div>
           <h1>Бронирование</h1>
           <form action="/bookingcheck" method="POST" id="bookingForm">
-            <label for="roomNumber">Номер зала:</label>
-            <input type="text" name="roomNumber" id="roomNumber" required><br><br>
-            <label for="bookingDate">Дата бронирования:</label>
-            <input type="date" name="bookingDate" id="bookingDate" required><br><br>
-            <label for="startTime">Время начала:</label>
-            <input type="time" name="startTime" id="startTime" required><br><br>
-            <label for="endTime">Время окончания:</label>
-            <input type="time" name="endTime" id="endTime" required><br><br>
+            
             <label for="fullName">Ваше имя:</label>
             <input type="text" name="fullName" id="fullName" required><br><br>
             <label for="phone">Номер телефона:</label>
@@ -66,6 +69,24 @@
     </main>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="/scripts/ajax.js"></script>
+    <script>
+        // Load the schedule table for the selected hall
+        function loadScheduleTable(hallId) {
+            $('.schedule-table').hide(); // Hide all schedule tables
+            $('#schedule-table-' + hallId).show(); // Show the schedule table for the selected hall
+        }
+    
+        $(document).ready(function() {
+            // Load the schedule table for Hall 1 by default
+            loadScheduleTable(1); // Load schedule table for Hall 1 by default
+    
+            // Handle change event of the hall select dropdown
+            $('#hall-select').change(function() {
+                const selectedHallId = $(this).val();
+                loadScheduleTable(selectedHallId);
+            });
+        });
+    </script>
 
 <div id="responseDiv"></div>
 

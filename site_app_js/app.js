@@ -60,7 +60,7 @@ async function getAvailableTimeSlotsForDateAndRoom(date, roomId) {
       'SELECT start_time, end_time FROM bookings WHERE room_id = ? AND booking_date = ?',
       [roomId, date]
     );
-    console.log("Booked Slots:", bookedSlots); // Выводим результаты запроса в консоль для отслеживания
+    //console.log("Booked Slots:", bookedSlots); // Выводим результаты запроса в консоль для отслеживания
     const bookedHours = new Set();
     bookedSlots.forEach(({ start_time: startTime, end_time: endTime }) => {
       const startHour = parseInt(startTime.split(':')[0]);
@@ -86,16 +86,16 @@ async function getAvailableTimeSlotsForDateAndRoom(date, roomId) {
 // Функция для формирования расписания для всех комнат на указанную дату
 async function generateScheduleForDate(date, halls) {
   try {
-    console.log("Date:", date); // Выводим переданную дату в консоль для отслеживания
-    console.log("Halls:", halls); 
-    console.log("Type of halls:", typeof halls); // Выводим тип halls для проверки
-    console.log("Result of query:", halls); // Выводим результат запроса для проверки структуры
+    //console.log("Date:", date); // Выводим переданную дату в консоль для отслеживания
+    //console.log("Halls:", halls); 
+    //console.log("Type of halls:", typeof halls); // Выводим тип halls для проверки
+    //console.log("Result of query:", halls); // Выводим результат запроса для проверки структуры
     const schedule = [];
    
     const availableSlots = await getAvailableTimeSlotsForDateAndRoom(date, halls);
-    console.log("Available Slots for Hall", halls, ":", availableSlots); // Выводим доступные слоты для каждого зала в консоль
+    //console.log("Available Slots for Hall", halls, ":", availableSlots); // Выводим доступные слоты для каждого зала в консоль
     schedule.push({ halls, availableSlots });
-    console.log("sdasdad", schedule)
+    //console.log("sdasdad", schedule)
     
     return schedule;
   } catch (error) {
@@ -106,18 +106,18 @@ async function generateScheduleForDate(date, halls) {
 
 async function generateScheduleForHall(startDate, endDate, roomId) {
   try {
-    console.log("Room ID:", roomId);
-    console.log("Start Date:", startDate.toISOString().split('T')[0]); // Добавлено для отслеживания начальной даты
-    console.log("End Date:", endDate.toISOString().split('T')[0]); // Добавлено для отслеживания конечной даты
+    //console.log("Room ID:", roomId);
+    //console.log("Start Date:", startDate.toISOString().split('T')[0]); // Добавлено для отслеживания начальной даты
+    //console.log("End Date:", endDate.toISOString().split('T')[0]); // Добавлено для отслеживания конечной даты
     const scheduleForHall = [];
     const currentDate = new Date(startDate);
     while (currentDate <= endDate) {
-      console.log("Current Date:", currentDate.toISOString().split('T')[0]); // Добавлено для отслеживания текущей даты
+      //console.log("Current Date:", currentDate.toISOString().split('T')[0]); // Добавлено для отслеживания текущей даты
       const scheduleForDate = await generateScheduleForDate(currentDate.toISOString().split('T')[0], roomId);
       scheduleForHall.push({ date: currentDate.toISOString().split('T')[0], scheduleForDate });
       currentDate.setDate(currentDate.getDate() + 1);
     }
-    console.log("haaas", scheduleForHall)
+    //console.log("haaas", scheduleForHall)
 
     return scheduleForHall;
   } catch (error) {
@@ -129,12 +129,17 @@ async function generateScheduleForHall(startDate, endDate, roomId) {
 // Функция для формирования расписания для конкретного зала на указанный период
 app.get('/booking', async (req, res) => {
   try {
-    const currentDate = new Date();
-    const startOfWeek = new Date(currentDate);
-    startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+    const currentDateUTC = new Date();
 
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6); // Конец недели
+    // Получаем смещение для Новосибирского времени (GMT+7)
+    const offset = 7 * 60 * 60 * 1000; // 7 часов * 60 минут * 60 секунд * 1000 миллисекунд
+
+    // Применяем смещение к текущей дате и времени UTC, чтобы получить Новосибирское время
+    const currentDate = new Date(currentDateUTC.getTime() + offset);
+    //const currentDate = new Date();
+    
+    const endOfWeek = new Date(currentDate);
+    endOfWeek.setDate(currentDate.getDate() + 13); // Конец недели
 
     const connection = await pool.getConnection();
     const [halls] = await connection.query('SELECT id, room_number FROM halls');
@@ -143,14 +148,14 @@ app.get('/booking', async (req, res) => {
 
     const schedule = [];
     for (const hall of halls) {
-      console.log("Result of query:", hall);
-      const scheduleForHall = await generateScheduleForHall(startOfWeek, endOfWeek, hall.id);
+      //console.log("Result of query:", hall);
+      const scheduleForHall = await generateScheduleForHall(currentDate, endOfWeek, hall.id);
       schedule.push({ hall, scheduleForHall });
     }
     //console.log("Shasdsad", schedule[2])
     
-    printObject(schedule);
-
+    //printObject(schedule);
+    
     res.render('booking', { schedule });
   } catch (error) {
     console.error('Error fetching booking data:', error);
