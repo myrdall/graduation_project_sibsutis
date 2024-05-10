@@ -4,15 +4,104 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles/style.css">
+    <link rel="stylesheet" href="owlcarousel/owl.carousel.min.css">
+    <link rel="stylesheet" href="owlcarousel/owl.theme.default.min.css">
     <title>Document</title>
+    
 </head>
 <body>
-    <%- include ('blocks/header')-%>
+    
     <main class="main-content">
+        <%- include ('blocks/header')-%>
+        <div class="separator"></div>
         <h1>Добро пожаловать на наш сайт!</h1>
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ad accusantium totam dolore minima enim quae maxime voluptate eum deleniti, laboriosam, tempora id nostrum repellendus quis? Adipisci molestias similique officiis accusantium.</p>
+        <p> <b>Фотостудия ZOOM'ай</b> — ваш идеальный выбор для творческих съемок! У нас имеется 3 уникальных зала, где вы можете воплотить свои идеи в жизнь</p>
+        <div class="container">
+            <div class="section">
+                <div class="color-block"></div>
+                <p><a href="#">Зал "Токио"</a></p>
+            </div>
+            <div class="section">
+                <div class="color-block"></div>
+                <p><a href="#">Зал "Пекин" </a></p>
+            </div>
+            <div class="section">
+                <div class="color-block"></div>
+                <p><a href="#">Зал "Сеул" </a></p>
+            </div>
+        </div>
+        <h1>Примеры работ</h1>
+        <p>Представляем вашему вниманию примеры работ выполненых в наших залах</p>
+        <div class="container">
+            <div class="owl-carousel owl-theme">
+                <div class="section">
+                    <div class="color-block" style="background-color: #ff0000"> Your Content </div>
+                </div>
+                <div class="section">
+                    <div class="color-block"> Your Content </div>
+                </div>
+                <div class="section">
+                    <div class="color-block"> Your Content </div>
+                </div>
+                <div class="section">
+                    <div class="color-block"> Your Content </div>
+                </div>
+                <div class="section">
+                    <div class="color-block"> Your Content </div>
+                </div>
+                 <div class="section">
+                    <div class="color-block"> Your Content </div>
+                </div>  
+                <div class="section">
+                    <div class="color-block"> Your Content </div>
+                </div> 
+                <div class="section">
+                    <div class="color-block"> Your Content </div>
+                </div> 
+                <div class="section">
+                    <div class="color-block"> Your Content </div>
+                </div> 
+                <div class="section">
+                    <div class="color-block"> Your Content </div>
+                </div> 
+                <div class="section">
+                    <div class="color-block"> Your Content </div>
+                </div> 
+                <div class="section">
+                    <div class="color-block"> Your Content </div>
+                </div> 
+                <div class="section">
+                    <div class="color-block"> Your Content </div>
+                </div> 
+            </div>
+        </div>
+        
         <div id="counter"></div>
-        <a href="/booking">Пререйти к бронированию</a>
+        <br><br>
+        <div class="section">
+            <p> <a href="/booking">Пререйти к бронированию Залов</a></p>
+        </div>
+        <h1 id="about">О нас</h1>
+        <div class="container" >
+            <div class="section">
+                <div style="position:relative;overflow:hidden;"><a href="https://yandex.ru/maps/65/novosibirsk/?utm_medium=mapframe&utm_source=maps" style="color:#eee;font-size:12px;position:absolute;top:0px;">Новосибирск</a><a href="https://yandex.ru/maps/65/novosibirsk/house/ulitsa_dobrolyubova_16/bEsYfwJhTUYHQFtvfXxxeXVhYA==/?from=mapframe&ll=82.955329%2C55.009937&utm_medium=mapframe&utm_source=maps&z=15.9" style="color:#eee;font-size:12px;position:absolute;top:14px;">Улица Добролюбова, 16 — Яндекс Карты</a><iframe src="https://yandex.ru/map-widget/v1/?from=mapframe&ll=82.955329%2C55.009937&mode=whatshere&whatshere%5Bpoint%5D=82.952267%2C55.009374&whatshere%5Bzoom%5D=17&z=15.9" width="auto" height="450" frameborder="1" allowfullscreen="true" style="position:relative;"></iframe></div>
+            </div>
+            <div class="section">
+                <div class="contact-block">
+                    <p><b>Фотостудия ZOOM'ай</b> — ваш идеальный выбор для творческих съемок! У нас имеется 3 уникальных зала, где вы можете воплотить свои идеи в жизнь. Мы также предлагаем услугу аренды фототехники, чтобы ваша съемка была максимально комфортной и продуктивной.</p>
+                    <p><b>Контактная информация</b></p>
+                    <p><b>Адрес:</b>   ул. Добролюбова 16, 5 этаж</p>
+                    <p><b>Время работы: </b> 09:00 - 22:00</p>
+                    <p><b>Телефон:</b> 8-800-555-35-35</p>
+                    <p><b>studio@zoomai.ru</b></p>
+                    <img src = "/img/telegram-svgrepo-com.svg" alt="Telegram" style="width: 50px; height: 50px; cursor: pointer; padding: 0 10px;">
+                    <img src = "/img/whatsapp-svgrepo-com.svg" alt="WhatsApp" style="width: 50px; height: 50px; cursor: pointer; padding: 0 10px;">
+                </div>
+            </div>
+        </div>
+        <button id="scrollToTopBtn" title="Вернуться наверх">&#8593;</button>
+        
+       
 
 
     </main>
@@ -20,6 +109,9 @@
     <%- include('blocks/footer') -%>
 
 
-    <script src="scripts/test.js"></script>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/owlcarousel/owl.carousel.min.js"></script>
+    <script src="/scripts/test.js"></script>
 </body>
 </html>

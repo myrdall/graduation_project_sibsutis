@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const bodyParser = require('body-parser');
 const mysql = require('mysql2/promise');
 const mysql2 = require('mysql2');
@@ -35,8 +36,15 @@ connection.connect((err) => {
   });
 
 
+const currentDate = new Date();
+const startOfWeek = new Date(currentDate);
+startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+const endOfWeek = new Date(startOfWeek);
+endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+
 app.set('view engine', 'ejs');
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 // Позволяем приложению использовать body-parser middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -44,31 +52,122 @@ app.get('/', (req, res) => {
     res.render('index');
 });
 
+
+async function getAvailableTimeSlotsForDateAndRoom(date, roomId) {
+  try {
+    const connection = await pool.getConnection();
+    const [bookedSlots] = await connection.query(
+      'SELECT start_time, end_time FROM bookings WHERE room_id = ? AND booking_date = ?',
+      [roomId, date]
+    );
+    console.log("Booked Slots:", bookedSlots); // Выводим результаты запроса в консоль для отслеживания
+    const bookedHours = new Set();
+    bookedSlots.forEach(({ start_time: startTime, end_time: endTime }) => {
+      const startHour = parseInt(startTime.split(':')[0]);
+      const endHour = parseInt(endTime.split(':')[0]) + 1;
+      for (let hour = startHour; hour < endHour; hour++) {
+        bookedHours.add(hour);
+      }
+    });
+    connection.release();
+    const availableSlots = [];
+    for (let hour = 9; hour <= 22; hour++) {
+      if (!bookedHours.has(hour)) {
+        availableSlots.push(hour);
+      }
+    }
+    return availableSlots;
+  } catch (error) {
+    console.error("Error retrieving available time slots:", error);
+    return [];
+  }
+}
+
+// Функция для формирования расписания для всех комнат на указанную дату
+async function generateScheduleForDate(date, halls) {
+  try {
+    console.log("Date:", date); // Выводим переданную дату в консоль для отслеживания
+    console.log("Halls:", halls); 
+    console.log("Type of halls:", typeof halls); // Выводим тип halls для проверки
+    console.log("Result of query:", halls); // Выводим результат запроса для проверки структуры
+    const schedule = [];
+   
+    const availableSlots = await getAvailableTimeSlotsForDateAndRoom(date, halls);
+    console.log("Available Slots for Hall", halls, ":", availableSlots); // Выводим доступные слоты для каждого зала в консоль
+    schedule.push({ halls, availableSlots });
+    console.log("sdasdad", schedule)
+    
+    return schedule;
+  } catch (error) {
+    console.error("Error generating schedule for date:", error);
+    return [];
+  }
+}
+
+async function generateScheduleForHall(startDate, endDate, roomId) {
+  try {
+    console.log("Room ID:", roomId);
+    console.log("Start Date:", startDate.toISOString().split('T')[0]); // Добавлено для отслеживания начальной даты
+    console.log("End Date:", endDate.toISOString().split('T')[0]); // Добавлено для отслеживания конечной даты
+    const scheduleForHall = [];
+    const currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+      console.log("Current Date:", currentDate.toISOString().split('T')[0]); // Добавлено для отслеживания текущей даты
+      const scheduleForDate = await generateScheduleForDate(currentDate.toISOString().split('T')[0], roomId);
+      scheduleForHall.push({ date: currentDate.toISOString().split('T')[0], scheduleForDate });
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    console.log("haaas", scheduleForHall)
+
+    return scheduleForHall;
+  } catch (error) {
+    console.error("Error generating schedule for hall:", error);
+    return [];
+  }
+}
+
+// Функция для формирования расписания для конкретного зала на указанный период
 app.get('/booking', async (req, res) => {
+  try {
     const currentDate = new Date();
     const startOfWeek = new Date(currentDate);
     startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
 
     const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setDate(startOfWeek.getDate() + 6); // Конец недели
 
     const connection = await pool.getConnection();
-    const [halls] = await connection.query('SELECT * FROM halls');
-
-    const bookingsByHall = [];
-    for (const hall of halls) {
-        const [bookings] = await connection.query(
-            'SELECT * FROM bookings WHERE booking_date >= ? AND booking_date <= ? AND room_id = ? ORDER BY booking_date, start_time', 
-            [startOfWeek.toISOString().split('T')[0],
-             endOfWeek.toISOString().split('T')[0],
-             hall.id]
-        );
-        bookingsByHall.push({ hall, bookings });
-    }
-
+    const [halls] = await connection.query('SELECT id, room_number FROM halls');
     connection.release();
-    res.render('booking', { halls, bookingsByHall });
+
+
+    const schedule = [];
+    for (const hall of halls) {
+      console.log("Result of query:", hall);
+      const scheduleForHall = await generateScheduleForHall(startOfWeek, endOfWeek, hall.id);
+      schedule.push({ hall, scheduleForHall });
+    }
+    //console.log("Shasdsad", schedule[2])
+    
+    printObject(schedule);
+
+    res.render('booking', { schedule });
+  } catch (error) {
+    console.error('Error fetching booking data:', error);
+    res.status(500).send('Internal Server Error');
+  }
 });
+
+function printObject(obj, depth = 0) {
+  for (const [key, value] of Object.entries(obj)) {
+      if (typeof value === 'object' && value !== null) {
+          console.log(`${' '.repeat(depth * 4)}${key}: `);
+          printObject(value, depth + 1);
+      } else {
+          console.log(`${' '.repeat(depth * 4)}${key}: ${value}`);
+      }
+  }
+}
 
 
 // Обработка POST запроса для бронирования

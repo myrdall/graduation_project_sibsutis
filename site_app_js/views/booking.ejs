@@ -10,29 +10,35 @@
     <%- include ('blocks/header')-%>
     <main class="main-content">
 
-        <% bookingsByHall.forEach(hallBookings => { %>
-            <h2>Зал №<%= hallBookings.hall.room_number %></h2>
-            <table border="1">
-                <tr>
-                    <th>Дата</th>
-                    <th>Время начала</th>
-                    <th>Время окончания</th>
-                    <th>Статус бронирования</th>
-                </tr>
-                <% hallBookings.bookings.forEach(booking => { %>
+
+        <h1>Booking Schedule</h1>
+        <% schedule.forEach(roomSchedule => { %>
+            <h2>Room Number: <%= roomSchedule.hall.room_number %></h2>
+            <table>
+                <thead>
                     <tr>
-                        <td><%= new Intl.DateTimeFormat('ru-RU').format(new Date(booking.booking_date)) %></td>
-                        <td><%= booking.start_time %></td>
-                        <td><%= booking.end_time %></td>
-                        <td><%= booking.booking_status === 'booked' ? 'Забронировано' : 'Отменено' %></td>
+                        <th> </th>
+                        <% roomSchedule.scheduleForHall.forEach(daySchedule => { %>
+                            <% const date = new Date(daySchedule.date); %>
+                            <% const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear().toString().slice(-2)}`; %>
+                            <th><%= formattedDate %></th>
+                        <% }); %>
                     </tr>
-                <% }); %>
+                </thead>
+                <tbody>
+                    <% for (let hour = 9; hour <= 22; hour++) { %>
+                        <tr>
+                            <td><%= hour %>:00</td>
+                            <% roomSchedule.scheduleForHall.forEach(daySchedule => { %>
+                                <% const isAvailable = daySchedule.scheduleForDate.some(slot => slot.availableSlots.includes(hour)); %>
+                                <td class="<%= isAvailable ? 'available' : 'booked' %>"></td>
+                            <% }); %>
+                        </tr>
+                    <% } %>
+                </tbody>
             </table>
         <% }); %>
-          
-
-          <button id="prevWeek">Предыдущая неделя</button>
-          <button id="nextWeek">Следующая неделя</button> <br>
+        
 
           <h1>Бронирование</h1>
           <form action="/bookingcheck" method="POST" id="bookingForm">
@@ -58,35 +64,15 @@
 
         <a href="/">Назад</a>
     </main>
-    
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-  $(document).ready(function() {
-    $('#bookingForm').submit(function(event) {
-      event.preventDefault(); // Предотвращаем отправку формы по умолчанию
-
-      $.ajax({
-        type: 'POST',
-        url: '/bookingcheck',
-        data: $(this).serialize(),
-        success: function(response) {
-          $('#responseDiv').html(response); // Выводим ответ от сервера в div
-          setTimeout(function() {
-            location.reload(); // Обновляем страницу через 2 секунды
-          }, 2000);
-        },
-        error: function(xhr, status, error) {
-          alert('Произошла ошибка: ' + error); // Показываем сообщение об ошибке
-        }
-      });
-    });
-  });
-</script>
+    <script src="/scripts/ajax.js"></script>
 
 <div id="responseDiv"></div>
 
     
     <%- include('blocks/footer') -%>
+
+    
 
     
 </body>
