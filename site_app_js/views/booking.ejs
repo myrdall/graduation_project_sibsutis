@@ -9,66 +9,77 @@
 <body>
     <%- include ('blocks/header')-%>
     <main class="main-content">
-
-
-        <h1>Booking Schedule</h1>
-        <label for="hall-select">Select a Hall:</label>
+        
+        
+        <label for="hall-select">Выбирите зал:</label>
         <select id="hall-select">
         <% schedule.forEach(roomSchedule => { %>
             <option value="<%= roomSchedule.hall.id %>"><%= roomSchedule.hall.room_number %></option>
         <% }); %>
         </select>
-        <div id="schedule-tables">
-            <% schedule.forEach(roomSchedule => { %>
-                <div id="schedule-table-<%= roomSchedule.hall.id %>" class="schedule-table" style="display: none;">
-                    <h2>Room Number: <%= roomSchedule.hall.room_number %></h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th> </th>
-                                <% roomSchedule.scheduleForHall.forEach(daySchedule => { %>
-                                    <% const date = new Date(daySchedule.date); %>
-                                    <% const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear().toString().slice(-2)}`; %>
-                                    <th><%= formattedDate %></th>
-                                <% }); %>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% for (let hour = 9; hour <= 22; hour++) { %>
-                                <tr>
-                                    <td><%= hour %>:00</td>
-                                    <% roomSchedule.scheduleForHall.forEach(daySchedule => { %>
-                                        <% const isAvailable = daySchedule.scheduleForDate.some(slot => slot.availableSlots.includes(hour)); %>
-                                        <td class="<%= isAvailable ? 'available' : 'booked' %>"></td>
-                                    <% }); %>
-                                </tr>
-                            <% } %>
-                        </tbody>
-                    </table>
+
+        <div class="container-td">
+            <div class="schedule-container">
+                <div id="schedule-tables">
+                    <% schedule.forEach(roomSchedule => { %>
+                        <div id="schedule-table-<%= roomSchedule.hall.id %>" class="schedule-table" style="display: none;">
+                            <h2>Зал: <%= roomSchedule.hall.room_number %></h2>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th> </th>
+                                        <% roomSchedule.scheduleForHall.forEach(daySchedule => { %>
+                                            <% const date = new Date(daySchedule.date); %>
+                                            <% const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear().toString().slice(-2)}`; %>
+                                            <th><%= formattedDate %></th>
+                                        <% }); %>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% for (let hour = 9; hour <= 22; hour++) { %>
+                                        <tr>
+                                            <td><%= hour %>:00</td>
+                                            <% roomSchedule.scheduleForHall.forEach(daySchedule => { %>
+                                                <% const isAvailable = daySchedule.scheduleForDate.some(slot => slot.availableSlots.includes(hour)); %>
+                                                <td class="<%= isAvailable ? 'available' : 'booked' %>"></td>
+                                            <% }); %>
+                                        </tr>             
+                                        
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    <% }); %>
                 </div>
-            <% }); %>
+            </div>
+            <div class="form-container">
+                <div id="booking-info">Выбранное время: </div>
+                 <div id="totalCostDiv">Стоимость аренды: <span id="totalCost"></span> руб.</div>
+            <br>
+              <form action="/bookingcheck" method="POST" id="bookingForm">
+                
+                <label for="fullName">Ваше имя:</label>
+                <input type="text" name="fullName" id="fullName" required><br><br>
+                <label for="phone">Номер телефона:</label>
+                <input type="tel" name="phone" id="phone" required><br><br>
+                <label for="email">Email:</label>
+                <input type="email" name="email" id="email" required><br><br>
+                <label for="comment">Комментарий (Не более 120 символов)</label>
+                <input type="text" id="comment" name="comment" maxlength="120"><br>
+                <input type="submit" value="Забронировать">
+              </form>
+            </div>
         </div>
         
-        <div id="booking-info">Selected booking time: </div>
-          <h1>Бронирование</h1>
-          <form action="/bookingcheck" method="POST" id="bookingForm">
-            
-            <label for="fullName">Ваше имя:</label>
-            <input type="text" name="fullName" id="fullName" required><br><br>
-            <label for="phone">Номер телефона:</label>
-            <input type="tel" name="phone" id="phone" required><br><br>
-            <label for="email">Email:</label>
-            <input type="email" name="email" id="email" required><br><br>
-            <input type="submit" value="Забронировать">
-          </form>
-
-          <div id="responseDiv"></div>
+        
+        <button id="scrollToTopBtn" title="Вернуться наверх">&#8593;</button>
         
 
-        <a href="/">Назад</a>
+          <div id="responseDiv"></div>
     </main>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="/scripts/ajax.js"></script>
+    <script src="/scripts/test.js"></script>
     <script>
         // Load the schedule table for the selected hall
         function loadScheduleTable(hallId) {

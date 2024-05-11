@@ -2,6 +2,7 @@ $(document).ready(function() {
 
 
     let selectedTimesByHall = {}; // Объект для хранения выбранных времен для каждого зала
+    let totalCost = 0;
 
     $('#schedule-tables').on('click', 'td.available', function() {
         const colIndex = $(this).index(); // Получаем индекс столбца, в котором произошел клик
@@ -11,8 +12,6 @@ $(document).ready(function() {
 
         const dateParts = date.split('.'); // Разбиваем строку на части, используя точку в качестве разделителя
         const formattedDate = `20${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
-
-        
           // Пока что временно устанавливаем время окончания как время начала
         
         // Проверяем, выбрано ли уже время начала для данного зала
@@ -32,45 +31,110 @@ $(document).ready(function() {
             }
         }
 
+        
+
         // Обновляем выбранные ячейки и информацию о бронировании
         updateSelectedCells();
         updateBookingTimeInfo(selectedTimesByHall);
+        calculateTotalCost(selectedTimesByHall);
 
         //const formattedDate = `${date.getFullYear()}-${(bookingData.bookingDate.getMonth() + 1).toString().padStart(2, '0')}-${bookingData.bookingDate.getDate().toString().padStart(2, '0')}`;
 
         // Обновляем bookingData с отформатированной датой
         $('#bookingForm').submit(function(event) {
-          event.preventDefault(); // Предотвращаем отправку формы по умолчанию
-    
-          $.ajax({
-            type: 'POST',
-            url: '/bookingcheck',
-            data: {
-              roomNumber: hallId,
-              bookingDate: formattedDate,
-              startTime: time,
-              endTime: selectedTimesByHall[hallId].endTime.time,
-              fullName: $('#fullName').val(),
-              phone: $('#phone').val(),
-              email: $('#email').val()
-          },
-            success: function(response) {
-              $('#responseDiv').html(response); // Выводим ответ от сервера в div
-              setTimeout(function() {
-                location.reload(); // Обновляем страницу через 2 секунды
-              }, 2000);
-            },
-            error: function(xhr, status, error) {
-              alert('Произошла ошибка: ' + error); // Показываем сообщение об ошибке
-            }
-          });
+            event.preventDefault(); // Предотвращаем отправку формы по умолчанию
+            const totalCost = calculateTotalCost(selectedTimesByHall);
+            console.log(totalCost);
+        
+            // Формируем объект с данными для передачи
+            const formData = {
+                roomNumber: hallId,
+                bookingDate: formattedDate,
+                startTime: time,
+                endTime: selectedTimesByHall[hallId].endTime.time,
+                fullName: $('#fullName').val(),
+                phone: $('#phone').val(),
+                email: $('#email').val(),
+                comment: $('#comment').val(),
+                price: totalCost
+            };
+        
+            // Преобразуем объект в строку запроса
+            const params = new URLSearchParams(formData).toString();
+                
+            // Формируем URL для перехода
+            const redirectUrl = `/confirmation?${params}`;
+        
+            // Отправка данных формы на сервер
+            $.ajax({
+                type: 'POST',
+                url: '/bookingcheck',
+                data: formData,
+                success: function(response) {
+                    // После успешного бронирования открываем новую вкладку с подтверждением
+                    window.open(redirectUrl, '_blank');
+        
+                    // Обновляем содержимое div с ответом от сервера
+                    $('#responseDiv').html(response);
+                    
+                    // Перезагружаем текущую страницу через 2 секунды
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
+                },
+                error: function(xhr, status, error) {
+                    alert('Произошла ошибка: ' + error); // Показываем сообщение об ошибке
+                }
+            });
         });
         
     });
 
+const pricesPerHour = {
+        '1': 1500, // Стоимость для первого зала
+        '2': 1300, // Стоимость для второго зала
+        '3': 1700  // Стоимость для третьего зала
+    };
 
-   
-
+    
+    function calculateTotalCost(selectedTimesByHall) {
+        let totalCost = 0;
+    
+        // Проход по каждому залу
+        for (const hallId in selectedTimesByHall) {
+            const selectedTimes = selectedTimesByHall[hallId];
+            totalCost = pricesPerHour[hallId]
+            // Получаем время начала и время окончания для текущего зала
+            const startTime = selectedTimes.startTime;
+            const endTime = selectedTimes.endTime;
+    
+            // Проверяем, что время начала и время окончания определены
+            if (startTime && endTime) {
+                // Разбиваем время начала и время окончания на часы и минуты
+                const [startHour, startMinute] = startTime.time.split(':').map(Number);
+                const [endHour, endMinute] = endTime.time.split(':').map(Number);
+    
+                // Вычисляем разницу в часах между временем окончания и временем начала
+                const hoursDiff = endHour - startHour;
+    
+                // Учитываем минуты, если они есть
+                if (endMinute > startMinute) {
+                    hoursDiff++;
+                }
+    
+                // Расчет стоимости аренды для текущего зала
+                const pricePerHour = pricesPerHour[hallId];
+                const hallTotalCost = pricePerHour * hoursDiff;
+    
+                // Суммирование стоимости для текущего зала
+                totalCost += hallTotalCost;
+            }
+        }
+    
+        console.log(totalCost);
+        return totalCost;
+    }
+    
     // Функция сравнения времени
     function compareTimes(time1, time2) {
         const [hours1, minutes1] = time1.split(':').map(Number);
@@ -109,17 +173,49 @@ function updateSelectedCells() {
 
     // Обновление информации о бронировании
     function updateBookingTimeInfo(selectedTimesByHall) {
-        let bookingInfo = 'Selected booking times:';
+        let bookingInfo = 'Выбранное время бронирования:';
         for (const [hallId, times] of Object.entries(selectedTimesByHall)) {
-            bookingInfo += ` Hall ${hallId}: ${times.startTime.date} ${times.startTime.time} - ${times.endTime.date} ${times.endTime.time};`;
+            bookingInfo += ` Зал ${hallId}: ${times.startTime.date} ${times.startTime.time} - ${times.endTime.date} ${times.endTime.time};`;
+
         }
         $('#booking-info').text(bookingInfo);
+        let totalCost = calculateTotalCost(selectedTimesByHall);
+        if (typeof totalCost === 'number' && !isNaN(totalCost)) {
+            // Преобразуем totalCost в число
+            totalCost = parseFloat(totalCost);
+    
+            // Обновляем текстовое содержимое элемента #totalCost
+            $('#totalCost').text(totalCost.toFixed(2));
+        } else {
+            console.error('Ошибка: totalCost не является числом');
+        }
     }
 
 });
 
+$(document).ready(function() {
+    $('#payment').click(function(event) {
+        event.preventDefault(); 
 
+        $.ajax({
+            type: 'POST',
+            url: '/#', // Замените на URL, который обрабатывает оплату
+            data: {
+                
+            },
+            success: function(response) {
+                // Вывод сообщения о успешной оплате в div
+                $('#responseDiv').text('Оплата прошла успешно!');
 
-
-
-
+                // Через 5 секунд очищаем сообщение об успешной оплате
+                setTimeout(function() {
+                    $('#responseDiv').text('');
+                }, 5000);
+            },
+            error: function(xhr, status, error) {
+                // Вывод сообщения об ошибке, если что-то пошло не так
+                $('#responseDiv').text('Произошла ошибка при обработке оплаты.');
+            }
+        });
+    });
+});

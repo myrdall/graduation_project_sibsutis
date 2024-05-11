@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/style.css">
+    <title>Бронь успешно создана!</title>
+</head>
+
+<body>
+    <%- include ('blocks/header')-%>
+    <main class="main-content">
+        <h3>Спасибо! Бронь успешно создана</h3>
+        <h4>Вы можете подтвердить бронирование оплатой, либо с вами свяжется наш администратор в течении одного часа</h4>
+        <h4>Предварительное бронирование действует 2 часа</h4>
+        <p>ФИО: <%= fullName %></p>
+        <p>Номер телефона: <%= phone %></p>
+        <p>eMail: <%= email %></p>
+        <p>Дата бронирония: <%= bookingDate %></p>
+        <p>Время начала: <%= startTime %></p>
+        <p>Время окончания (Час включительно): <%= endTime %></p>
+        <p>Зал: <%= roomNumber %></p>
+        <p>Комментарий: <%= comment %></p>
+        <p>Стоимость: <%= price %></p>
+        <div class="section">
+            <p> <a href="#" id="payment">Оплатить</a></p>
+        </div>
+        <div id="responseDiv"></div>
+    </main>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/scripts/ajax.js"></script>
+
+    <%- include('blocks/footer') -%>
+</body>
+
+</html>

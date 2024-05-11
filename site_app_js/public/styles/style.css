@@ -240,44 +240,53 @@ ul {
 
 
 table {
-  border-collapse: collapse;
+  width: 100%; 
+   border-collapse: collapse; 
   margin-bottom: 20px;
 }
+
+
 th, td {
-  border: 5px solid white;
-  border-spacing: 10px;
-  padding: 10px;
-  text-align: center;
-}
-td {
+  border: 2px solid #ddd; 
+  padding: 3px; 
+  text-align: center; 
   cursor: pointer;
 }
+
+
 .available {
-  background-color: green;
+  background-color: #56e65b; 
 }
+
 
 .booked {
-  background-color: red;
+  background-color: #f86776; 
 }
 
-#schedule-tables{
-  justify-content: center;
+
+#schedule-tables {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between; 
 }
 
-.schedule-table{
-  justify-content: center;
+
+.schedule-table {
+  width: 18%; 
+  margin-bottom: 20px;
 }
+
 
 .selected-hall-1 {
-  background-color: #FFD700; /* Замените на желаемый цвет для зала 1 */
+  background-color: #FFD700; 
 }
 
 .selected-hall-2 {
-  background-color: #00FF00; /* Замените на желаемый цвет для зала 2 */
+  background-color: #00FF00; 
 }
 
 .selected-hall-3 {
-  background-color: #0062ff; /* Замените на желаемый цвет для зала 3 */
+  background-color: #0062ff; 
 }
 
 
@@ -293,4 +302,128 @@ td {
 .available:hover {
   background-color: rgba(0, 128, 0, 0.253);
   
+}
+
+#booking-info{
+  flex-wrap: wrap;
+  font-size: 12pt;
+}
+
+
+#bookingForm {
+  max-width: 350px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+#bookingForm label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+#bookingForm input[type="text"],
+#bookingForm input[type="tel"],
+#bookingForm input[type="email"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+#bookingForm input[type="submit"] {
+  isplay: inline-block;
+  
+  width: auto;
+  min-width: 140px;
+  max-width: 100%;
+  height: auto;
+  margin: 0;
+  padding: 18px 40px;
+  overflow: hidden;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  border: 1px solid black;
+  border-radius: 100px;
+  outline: none;
+  background: white;
+  color: black;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  line-height: 1.5;
+  text-align: center;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+#bookingForm input[type="submit"]:hover {
+  background-color: #000000;
+  color: whitesmoke;
+}
+
+#bookingForm input[type="submit"]:focus {
+  outline: none;
+}
+
+#bookingForm input[type="submit"]:active {
+  background-color: #000000;
+}
+
+.schedule-container {
+  flex: 1;
+  margin-right: 20px;
+}
+
+.form-container {
+  flex: 1;
+}
+.schedule-table {
+  margin-bottom: 10px;
+}
+
+
+.container-td {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.select-wrapper {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px; /* Отступ снизу для разделения от других элементов */
+}
+
+/* Стили для метки */
+.select-label {
+  margin-right: 10px; /* Отступ справа для разделения от выпадающего списка */
+  font-size: 16px; /* Размер шрифта */
+  font-weight: bold; /* Жирный шрифт */
+}
+
+/* Стили для выпадающего списка */
+#hall-select {
+  padding: 8px 12px; /* Поля вокруг текста */
+  font-size: 16px; /* Размер шрифта */
+  border: 2px solid #ccc; /* Граница */
+  border-radius: 5px; /* Скругление углов */
+  outline: none; /* Убираем обводку при фокусе */
+  transition: border-color 0.3s; /* Плавное изменение цвета границы при фокусе */
+}
+
+/* Стили для опций выпадающего списка */
+#hall-select option {
+  font-size: 16px; /* Размер шрифта */
+}
+
+/* Стили для изменения внешнего вида выпадающего списка при фокусе */
+#hall-select:focus {
+  border-color: #007bff; /* Цвет границы при фокусе */
 }

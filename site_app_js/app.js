@@ -142,7 +142,7 @@ app.get('/booking', async (req, res) => {
     endOfWeek.setDate(currentDate.getDate() + 13); // Конец недели
 
     const connection = await pool.getConnection();
-    const [halls] = await connection.query('SELECT id, room_number FROM halls');
+    const [halls] = await connection.query('SELECT * FROM halls');
     connection.release();
 
 
@@ -155,6 +155,8 @@ app.get('/booking', async (req, res) => {
     //console.log("Shasdsad", schedule[2])
     
     //printObject(schedule);
+
+    
     
     res.render('booking', { schedule });
   } catch (error) {
@@ -177,7 +179,7 @@ function printObject(obj, depth = 0) {
 
 // Обработка POST запроса для бронирования
 app.post('/bookingcheck', async(req, res) => {
-    const { roomNumber, bookingDate, startTime, endTime, fullName, phone, email } = req.body;
+    const { roomNumber, bookingDate, startTime, endTime, fullName, phone, email, comment, price } = req.body;
     console.log(req.body);
     // Проверяем, существует ли пользователь в базе данных
     connection.query('SELECT id FROM clients WHERE full_name = ? AND email = ?', [fullName, email], (err, results) => {
@@ -212,8 +214,8 @@ app.post('/bookingcheck', async(req, res) => {
               res.send('Выбранное время уже забронировано. Пожалуйста, выберите другое время.');
             } else {
               // Время свободно, создаем бронирование
-              connection.query('INSERT INTO bookings (booking_date, start_time, end_time, client_id, room_id) VALUES (?, ?, ?, ?, ?)',
-                [bookingDate, startTime, endTime, clientId, roomNumber], (err, result) => {
+              connection.query('INSERT INTO bookings (booking_date, start_time, end_time, client_id, room_id, comment, price) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                [bookingDate, startTime, endTime, clientId, roomNumber, comment, price], (err, result) => {
                   if (err) throw err;
   
                   res.send('Бронирование успешно создано!');
@@ -223,6 +225,14 @@ app.post('/bookingcheck', async(req, res) => {
       }
     });
   });
+
+app.get('/confirmation', (req, res) => {
+    // Получение параметров из URL
+    const {fullName, phone, email,  bookingDate, startTime, endTime, roomNumber, comment, price } = req.query;
+
+    // Рендеринг страницы confirmation.ejs с передачей параметров
+    res.render('confirmation', { fullName, phone, email, bookingDate, startTime, endTime, roomNumber, comment, price });
+});
 
 
 
