@@ -1,5 +1,5 @@
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   padding: 0;
   display: flex;
@@ -66,7 +66,7 @@ ul {
   left: 50%;
   width: 0;
   height: 2px;
-  background-color: blue;
+  background-color: rgb(48, 48, 49);
   transition: width 0.5s ease-in-out, left 0.5s ease-in-out;
 }
 
@@ -147,6 +147,14 @@ ul {
   height: 450px; 
   background-color: #ccc; 
 }
+
+.color-block img{
+  width: 280px;
+  height: 450px; 
+  border: 5px white solid;
+}
+
+
 
 .content {
   background-color: pink;
@@ -337,7 +345,7 @@ th, td {
 }
 
 #bookingForm input[type="submit"] {
-  isplay: inline-block;
+  display: inline-block;
   
   width: auto;
   min-width: 140px;

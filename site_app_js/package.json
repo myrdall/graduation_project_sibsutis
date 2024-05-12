@@ -9,8 +9,10 @@
   "author": "Aleksey Goryachev",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "ejs": "^3.1.9",
     "express": "^4.19.1",
+    "express-session": "^1.18.0",
     "mysql2": "^3.9.2",
     "sequelize": "^6.37.1"
   }

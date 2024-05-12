@@ -1,8 +1,10 @@
 const express = require('express');
 const path = require('path');
+const session = require('express-session');
 const bodyParser = require('body-parser');
 const mysql = require('mysql2/promise');
 const mysql2 = require('mysql2');
+const bcrypt = require('bcryptjs');
 
 const { SRV_PORT, SRV_HOST, DB_HOST, DB_USER, DB_PASSWORD, DB_NAME} = require('./config');
 
@@ -48,9 +50,106 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Позволяем приложению использовать body-parser middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Middleware для сессий
+app.use(session({
+  secret: 'secret',
+  resave: true,
+  saveUninitialized: true
+}));
+
 app.get('/', (req, res) => {
     res.render('index');
 });
+
+app.get('/login', (req, res) => {
+  res.render('login');
+});
+
+// Обработка POST запроса на авторизацию
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+
+  // Поиск пользователя в базе данных MySQL
+  connection.query('SELECT * FROM users WHERE username = ?', [username], (err, results) => {
+    if (err) {
+      console.error('Error querying MySQL database', err);
+      res.send('Error');
+      return;
+    }
+
+    if (results.length > 0) {
+      const user = results[0];
+      if (bcrypt.compareSync(password, user.password)) {
+        req.session.user = user;
+        res.redirect('/admin');
+      } else {
+        res.send('Invalid username or password');
+      }
+    } else {
+      res.send('User not found');
+    }
+  });
+});
+
+app.get('/services', (req, res) => {
+  res.render('services');
+});
+
+app.get('/halls', (req, res) => {
+  res.render('halls');
+});
+
+// POST-запрос для разрушения сессии (в файле app.js или в вашем маршрутизаторе)
+app.post('/logout', (req, res) => {
+  req.session.destroy(err => {
+      if (err) {
+          console.error('Ошибка при разрушении сессии:', err);
+          res.sendStatus(500);
+      } else {
+          res.redirect('/login'); // Перенаправление на страницу входа после выхода
+      }
+  });
+});
+
+
+app.get('/admin', (req, res) => {
+  if (req.session.user) {
+    const sql = `
+      SELECT bookings.id AS booking_id, bookings.booking_date, bookings.start_time, bookings.end_time, 
+             clients.full_name, clients.phone, clients.email, halls.room_number, bookings.price, bookings.comment
+      FROM bookings
+      INNER JOIN clients ON bookings.client_id = clients.id
+      INNER JOIN halls ON bookings.room_id = halls.id
+      WHERE bookings.booking_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 14 DAY)
+      ORDER BY halls.room_number, bookings.booking_date, bookings.start_time;
+    `;
+
+    connection.query(sql, (error, results) => {
+      if (error) {
+        console.error('Error fetching bookings:', error);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+
+      // Группировка бронирований по залам
+      const bookingsByHall = {};
+      results.forEach(bookings => {
+        if (!bookingsByHall[bookings.room_number]) {
+          bookingsByHall[bookings.room_number] = [];
+        }
+        bookingsByHall[bookings.room_number].push(bookings);
+      });
+
+      res.render('admin', { bookingsByHall });
+    });
+  } else {
+    res.redirect('/login');
+  }
+});
+
+
+
+
 
 
 async function getAvailableTimeSlotsForDateAndRoom(date, roomId) {
@@ -60,7 +159,7 @@ async function getAvailableTimeSlotsForDateAndRoom(date, roomId) {
       'SELECT start_time, end_time FROM bookings WHERE room_id = ? AND booking_date = ?',
       [roomId, date]
     );
-    //console.log("Booked Slots:", bookedSlots); // Выводим результаты запроса в консоль для отслеживания
+    //console.log("Booked Slots:", bookedSlots);
     const bookedHours = new Set();
     bookedSlots.forEach(({ start_time: startTime, end_time: endTime }) => {
       const startHour = parseInt(startTime.split(':')[0]);
@@ -86,17 +185,10 @@ async function getAvailableTimeSlotsForDateAndRoom(date, roomId) {
 // Функция для формирования расписания для всех комнат на указанную дату
 async function generateScheduleForDate(date, halls) {
   try {
-    //console.log("Date:", date); // Выводим переданную дату в консоль для отслеживания
-    //console.log("Halls:", halls); 
-    //console.log("Type of halls:", typeof halls); // Выводим тип halls для проверки
-    //console.log("Result of query:", halls); // Выводим результат запроса для проверки структуры
     const schedule = [];
-   
     const availableSlots = await getAvailableTimeSlotsForDateAndRoom(date, halls);
     //console.log("Available Slots for Hall", halls, ":", availableSlots); // Выводим доступные слоты для каждого зала в консоль
-    schedule.push({ halls, availableSlots });
-    //console.log("sdasdad", schedule)
-    
+    schedule.push({ halls, availableSlots }); 
     return schedule;
   } catch (error) {
     console.error("Error generating schedule for date:", error);
@@ -117,8 +209,6 @@ async function generateScheduleForHall(startDate, endDate, roomId) {
       scheduleForHall.push({ date: currentDate.toISOString().split('T')[0], scheduleForDate });
       currentDate.setDate(currentDate.getDate() + 1);
     }
-    //console.log("haaas", scheduleForHall)
-
     return scheduleForHall;
   } catch (error) {
     console.error("Error generating schedule for hall:", error);
@@ -130,21 +220,15 @@ async function generateScheduleForHall(startDate, endDate, roomId) {
 app.get('/booking', async (req, res) => {
   try {
     const currentDateUTC = new Date();
-
     // Получаем смещение для Новосибирского времени (GMT+7)
     const offset = 7 * 60 * 60 * 1000; // 7 часов * 60 минут * 60 секунд * 1000 миллисекунд
-
     // Применяем смещение к текущей дате и времени UTC, чтобы получить Новосибирское время
     const currentDate = new Date(currentDateUTC.getTime() + offset);
-    //const currentDate = new Date();
-    
     const endOfWeek = new Date(currentDate);
     endOfWeek.setDate(currentDate.getDate() + 13); // Конец недели
-
     const connection = await pool.getConnection();
     const [halls] = await connection.query('SELECT * FROM halls');
     connection.release();
-
 
     const schedule = [];
     for (const hall of halls) {
@@ -152,11 +236,8 @@ app.get('/booking', async (req, res) => {
       const scheduleForHall = await generateScheduleForHall(currentDate, endOfWeek, hall.id);
       schedule.push({ hall, scheduleForHall });
     }
-    //console.log("Shasdsad", schedule[2])
     
     //printObject(schedule);
-
-    
     
     res.render('booking', { schedule });
   } catch (error) {
@@ -165,6 +246,8 @@ app.get('/booking', async (req, res) => {
   }
 });
 
+
+//Отладочная функция для проверки структуры сгенерированного расписания
 function printObject(obj, depth = 0) {
   for (const [key, value] of Object.entries(obj)) {
       if (typeof value === 'object' && value !== null) {
@@ -229,13 +312,28 @@ app.post('/bookingcheck', async(req, res) => {
 app.get('/confirmation', (req, res) => {
     // Получение параметров из URL
     const {fullName, phone, email,  bookingDate, startTime, endTime, roomNumber, comment, price } = req.query;
-
     // Рендеринг страницы confirmation.ejs с передачей параметров
     res.render('confirmation', { fullName, phone, email, bookingDate, startTime, endTime, roomNumber, comment, price });
 });
 
+app.post('/delete-booking', (req, res) => {
+  const bookingId = req.body.bookingId;
 
-
+  const deleteQuery = "DELETE FROM bookings WHERE id = ?";
+    
+  connection.query(deleteQuery, [bookingId], (error, result) => {
+        if (error) {
+            console.error("Ошибка при удалении записи о бронировании:", error);
+            res.status(500).json({ success: false, message: 'Произошла ошибка при удалении записи о бронировании.' });
+        } else {
+            if (result.affectedRows > 0) {
+                res.json({ success: true, message: 'Запись о бронировании успешно удалена.' });
+            } else {
+                res.json({ success: false, message: 'Запись с указанным ID не найдена.' });
+            }
+        }
+    });
+});
 
 app.use((req, res, next) => {
     res.status(404).render('oops');

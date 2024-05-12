@@ -1,15 +1,3 @@
-const counterElement = document.getElementById('counter');
-
-let count = 0;
-
-function updateCounter(){
-    count++;
-    counterElement.textContent = count;
-    if (count >= 20) count = 0;
-}
-
-setInterval(updateCounter, 100);
-
 $(document).ready(function(){
     $(".owl-carousel").owlCarousel({
         loop:true,
@@ -38,20 +26,22 @@ $(document).ready(function(){
     );
  });
 
-document.addEventListener('DOMContentLoaded', function() {
-    let link = document.querySelector('a[href^="#"]');
+ document.addEventListener('DOMContentLoaded', function() {
+    let links = document.querySelectorAll('a[href^="#"]');
 
-    link.addEventListener('click', function(e) {
-        e.preventDefault();
+    links.forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
 
-        let targetId = this.getAttribute('href').substring(1);
-        let targetElement = document.getElementById(targetId);
+            let targetId = this.getAttribute('href').substring(1);
+            let targetElement = document.getElementById(targetId);
 
-        if (targetElement) {
-            targetElement.scrollIntoView({
-                behavior: 'smooth'
-            });
-        }
+            if (targetElement) {
+                targetElement.scrollIntoView({
+                    behavior: 'smooth'
+                });
+            }
+        });
     });
 });
 

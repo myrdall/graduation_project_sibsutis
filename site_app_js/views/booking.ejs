@@ -7,21 +7,20 @@
     <title>Document</title>
 </head>
 <body>
-    <%- include ('blocks/header')-%>
     <main class="main-content">
-        
-        
+        <%- include ('blocks/header')-%>
+        <div class="separator"></div>
+        <br>
         <label for="hall-select">Выбирите зал:</label>
         <select id="hall-select">
-        <% schedule.forEach(roomSchedule => { %>
-            <option value="<%= roomSchedule.hall.id %>"><%= roomSchedule.hall.room_number %></option>
-        <% }); %>
+            <% schedule.forEach(roomSchedule => { %>
+                <option value="<%= roomSchedule.hall.id %>"><%= roomSchedule.hall.room_number %></option>
+            <% }); %>
         </select>
-
         <div class="container-td">
             <div class="schedule-container">
                 <div id="schedule-tables">
-                    <% schedule.forEach(roomSchedule => { %>
+                        <% schedule.forEach(roomSchedule => { %>
                         <div id="schedule-table-<%= roomSchedule.hall.id %>" class="schedule-table" style="display: none;">
                             <h2>Зал: <%= roomSchedule.hall.room_number %></h2>
                             <table>
@@ -54,9 +53,9 @@
             </div>
             <div class="form-container">
                 <div id="booking-info">Выбранное время: </div>
-                 <div id="totalCostDiv">Стоимость аренды: <span id="totalCost"></span> руб.</div>
-            <br>
-              <form action="/bookingcheck" method="POST" id="bookingForm">
+                <div id="totalCostDiv">Стоимость аренды: <span id="totalCost"></span> руб.</div>
+                <br>
+                <form action="/bookingcheck" method="POST" id="bookingForm">
                 
                 <label for="fullName">Ваше имя:</label>
                 <input type="text" name="fullName" id="fullName" required><br><br>
@@ -70,42 +69,12 @@
               </form>
             </div>
         </div>
-        
-        
         <button id="scrollToTopBtn" title="Вернуться наверх">&#8593;</button>
-        
-
-          <div id="responseDiv"></div>
+        <div id="responseDiv"></div>
     </main>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="/scripts/ajax.js"></script>
     <script src="/scripts/test.js"></script>
-    <script>
-        // Load the schedule table for the selected hall
-        function loadScheduleTable(hallId) {
-            $('.schedule-table').hide(); // Hide all schedule tables
-            $('#schedule-table-' + hallId).show(); // Show the schedule table for the selected hall
-        }
-    
-        $(document).ready(function() {
-            // Load the schedule table for Hall 1 by default
-            loadScheduleTable(1); // Load schedule table for Hall 1 by default
-    
-            // Handle change event of the hall select dropdown
-            $('#hall-select').change(function() {
-                const selectedHallId = $(this).val();
-                loadScheduleTable(selectedHallId);
-            });
-        });
-    </script>
-
-<div id="responseDiv"></div>
-
-    
-    <%- include('blocks/footer') -%>
-
-    
-
-    
+    <%- include('blocks/footer') -%>    
 </body>
 </html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Page</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        /* Стили для содержимого вкладок */
+        .tab-content {
+            display: none;
+            padding: 10px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .tab-link{
+            cursor: pointer;
+            font-size: 14pt;
+        }
+
+        .tab-link:hover{
+            text-decoration: underline;
+        }
+
+        .pagination {
+            margin-top: 10px;
+        }
+        .pagination button {
+            cursor: pointer;
+            padding: 5px 10px;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Admin Page</h1>
+    <div class="tabs">
+        <% Object.keys(bookingsByHall).forEach(room_number => { %>
+            <div class="tab-link" data-room="<%= room_number %>">Зал <%= room_number %></div>
+        <% }); %>
+    </div>
+    <div class="tab-contents">
+        <% Object.keys(bookingsByHall).forEach(room_number => { %>
+            <div id="tab-content-<%= room_number %>" class="tab-content">
+                <h2>Зал <%= room_number %></h2>
+                <table>
+                    <tr>
+                        <th>ID Бронирования</th>
+                        <th>Дата</th>
+                        <th>Время начала</th>
+                        <th>Время окончания</th>
+                        <th>Имя клиента</th>
+                        <th>Телефон</th>
+                        <th>Email</th>
+                        <th>Комментарий</th>
+                        <th>Стоимость</th>
+                    </tr>
+                    <% bookingsByHall[room_number].forEach(booking => { %>
+                        <tr>
+                            <td><%= booking.booking_id %></td>
+                            <td data-date="<%= booking.booking_date %>"><%= booking.booking_date %></td>
+                            <td><%= booking.start_time %></td>
+                            <td><%= booking.end_time %></td>
+                            <td><%= booking.full_name %></td>
+                            <td><%= booking.phone %></td>
+                            <td><%= booking.email %></td>
+                            <td><%= booking.comment %></td>
+                            <td><%= booking.price %></td>
+                        </tr>
+                    <% }); %>
+                </table>
+                <% if (bookingsByHall[room_number].length > 1) { %>
+                    <div class="pagination">
+                        <button class="prev-btn" data-room="<%= room_number %>">Предыдущие записи</button>
+                        <button class="next-btn" data-room="<%= room_number %>">Следующие записи</button>
+                    </div>
+                <% } %>
+            </div>
+        <% }); %>
+    </div>
+    <div id="delete-result"></div> 
+
+    <h3>Удаление бронирования</h3>
+    <form id="delete-booking-form">
+        <label for="booking-id">ID бронирования:</label>
+        <input type="text" id="booking-id" name="bookingId">
+        <div class="pagination">
+        <button type="submit">Удалить</button>
+        </div>
+    </form>
+
+    <form id="logout-form" action="/logout" method="POST">
+        <div class="pagination">
+        <button type="submit" >Выход</button>
+        </div>
+    </form>
+   
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/scripts/ajax.js"></script>
+    <script src="/scripts/test.js"></script>
+    <script>
+        $(document).ready(function(){
+
+            function formatDate(dateString) {
+                var options = { weekday: 'long', year: 'numeric', month: 'numeric', day: 'numeric' };
+                var date = new Date(dateString);
+                return date.toLocaleDateString('ru-RU', options);
+            }
+
+            // Применяем форматирование к датам в таблице при загрузке страницы
+            $('table td[data-date]').each(function(){
+                var dateString = $(this).attr('data-date');
+                var formattedDate = formatDate(dateString);
+                $(this).text(formattedDate);
+            });
+
+            // Обработчик клика по вкладке
+            $('.tab-link').click(function(){
+                var roomNumber = $(this).attr('data-room');
+                $('.tab-link').removeClass('active');
+                $(this).addClass('active');
+                $('.tab-content').removeClass('active');
+                $('#tab-content-' + roomNumber).addClass('active');
+            });
+    
+            // Скрыть все строки таблицы
+            $('table tr').hide();
+    
+            // Показать первые 10 записей при загрузке страницы
+            $('table tr:lt(11)').show();
+    
+            // Обработчик клика по кнопке "Следующие записи"
+            $('.next-btn').click(function(){
+                var roomNumber = $(this).attr('data-room');
+                var startIndex = $('#tab-content-' + roomNumber + ' table tr:visible:last').index() + 1; // Индекс следующей записи после последней видимой
+                $('#tab-content-' + roomNumber + ' table tr').hide(); // Скрыть все строки таблицы
+                $('#tab-content-' + roomNumber + ' table tr:gt(' + (startIndex + 8) + '):lt(10)').show(); // Показать следующие 10 записей, начиная с текущей позиции
+            });
+    
+            // Обработчик клика по кнопке "Предыдущие записи"
+            $('.prev-btn').click(function(){
+                var roomNumber = $(this).attr('data-room');
+                var currentRowCount = $('#tab-content-' + roomNumber + ' table tr:visible').length;
+                var startIndex = Math.max(0, currentRowCount - 21); // Индекс первой записи на предыдущей странице
+                $('#tab-content-' + roomNumber + ' table tr').hide(); // Скрыть все строки таблицы
+                $('#tab-content-' + roomNumber + ' table tr:gt(' + startIndex + '):lt(10)').show(); // Показать предыдущие 10 записей
+            });
+
+            $('#delete-booking-form').submit(function(event){
+            event.preventDefault(); // Предотвращаем отправку формы по умолчанию
+
+            // Получаем значение ID бронирования из формы
+            var bookingId = $('#booking-id').val();
+
+            // Отправляем AJAX-запрос на удаление записи о бронировании
+            $.ajax({
+                url: '/delete-booking', // URL для удаления записи
+                type: 'POST', // Метод запроса
+                data: { bookingId: bookingId }, // Данные для отправки
+                success: function(response){
+                    // Отображаем сообщение об успешном или неудачном удалении
+                    $('#delete-result').text(response.message);
+
+                    // Если удаление успешно, перезагружаем страницу через 3 секунды
+                    if (response.success) {
+                        setTimeout(function(){
+                            location.reload();
+                        }, 3000);
+                    }
+                },
+                error: function(){
+                    // Отображаем сообщение об ошибке
+                    $('#delete-result').text('Произошла ошибка при удалении записи.');
+                }
+            });
+         });
+        });
+    </script>
+</body>
+</html>
