@@ -2,6 +2,7 @@
 //Код отвечающий за отработку событий при клике на слоты в в расписаннии
 
 $(document).ready(function() {
+    let date, time, hallId;
     let selectedTimesByHall = {}; // Объект для хранения выбранных времен для каждого зала
     const pricesPerHour = {
         '1': 1500, // Стоимость для первого зала
@@ -11,12 +12,10 @@ $(document).ready(function() {
 
     $('#schedule-tables').on('click', 'td.available', function() {
         const colIndex = $(this).index(); // Получаем индекс столбца, в котором произошел клик
-        const date = $('#schedule-tables thead th').eq(colIndex).text(); // Получаем дату из заголовка столбца
-        const time = $(this).closest('tbody').find('tr').eq($(this).closest('tr').index()).find('td').eq(0).text(); // Получаем время из первой ячейки строки
-        const hallId = $(this).closest('.schedule-table').attr('id').split('-')[2]; // Получаем номер зала из id расписания
+        date = $('#schedule-tables thead th').eq(colIndex).text(); // Получаем дату из заголовка столбца
+        time = $(this).closest('tbody').find('tr').eq($(this).closest('tr').index()).find('td').eq(0).text(); // Получаем время из первой ячейки строки
+        hallId = $(this).closest('.schedule-table').attr('id').split('-')[2]; // Получаем номер зала из id расписания
 
-        const dateParts = date.split('.'); // Разбиваем строку на части, используя точку в качестве разделителя
-        const formattedDate = `20${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
         
         // Проверяем, выбрано ли уже время начала для данного зала
         if (!selectedTimesByHall.hasOwnProperty(hallId)) {
@@ -43,61 +42,64 @@ $(document).ready(function() {
 
       
         // Обновляем bookingData с отформатированной датой
-    $('#bookingForm').submit(function(event) {
-            event.preventDefault(); // Предотвращаем отправку формы по умолчанию
-            const totalCost = calculateTotalCost(selectedTimesByHall);
-            console.log(totalCost);
-        
-            // Формируем объект с данными для передачи
-            const formData = {
-                roomNumber: hallId,
-                bookingDate: formattedDate,
-                startTime: selectedTimesByHall[hallId].startTime.time,
-                endTime: selectedTimesByHall[hallId].endTime.time,
-                fullName: $('#fullName').val(),
-                phone: $('#phone').val(),
-                email: $('#email').val(),
-                comment: $('#comment').val(),
-                price: totalCost
-            };
-        
-            // Преобразуем объект в строку запроса
-            const params = new URLSearchParams(formData).toString();
-                
-            // Формируем URL для перехода
-            const redirectUrl = `/confirmation?${params}`;
-        
-            // Отправка данных формы на сервер
-            $.ajax({
-                type: 'POST',
-                url: '/bookingcheck',
-                data: formData,
-                success: function(response) {
-                    $('#responseDiv').html(response);
-                    // После успешного бронирования открываем новую вкладку с подтверждением
-                    var timer = setInterval(function() {
-                        $('#responseDiv').append('<div>Открытие новой вкладки через: ' + counter + ' секунд</div>');
-                        counter--;
-                        if (counter < 0) {
-                            clearInterval(timer);
-                            // После завершения таймера открываем новую вкладку с подтверждением
-                            window.open(redirectUrl, '_blank');
-                        }
-                    }, 1000);
-                    window.open(redirectUrl, '_blank');
-                    
-                    
-                    // Перезагружаем текущую страницу через 2 секунды
-                    setTimeout(function() {
-                        location.reload();
-                    }, 2000);
-                },
-                error: function(xhr, status, error) {
-                    alert('Произошла ошибка: ' + error); // Показываем сообщение об ошибке
-                }
-            });
-        });  
     });
+
+    $('#bookingForm').submit(function(event) {
+        event.preventDefault(); // Предотвращаем отправку формы по умолчанию
+        const totalCost = calculateTotalCost(selectedTimesByHall);
+        console.log(totalCost);
+        const dateParts = date.split('.'); // Разбиваем строку на части, используя точку в качестве разделителя
+        const formattedDate = `20${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+    
+        // Формируем объект с данными для передачи
+        const formData = {
+            roomNumber: hallId,
+            bookingDate: formattedDate,
+            startTime: selectedTimesByHall[hallId].startTime.time,
+            endTime: selectedTimesByHall[hallId].endTime.time,
+            fullName: $('#fullName').val(),
+            phone: $('#phone').val(),
+            email: $('#email').val(),
+            comment: $('#comment').val(),
+            price: totalCost
+        };
+    
+        // Преобразуем объект в строку запроса
+        const params = new URLSearchParams(formData).toString();
+            
+        // Формируем URL для перехода
+        const redirectUrl = `/confirmation?${params}`;
+    
+        // Отправка данных формы на сервер
+        $.ajax({
+            type: 'POST',
+            url: '/bookingcheck',
+            data: formData,
+            success: function(response) {
+                $('#responseDiv').html(response);
+                // После успешного бронирования открываем новую вкладку с подтверждением
+                var timer = setInterval(function() {
+                    $('#responseDiv').append('<div>Открытие новой вкладки через: ' + counter + ' секунд</div>');
+                    counter--;
+                    if (counter < 0) {
+                        clearInterval(timer);
+                        // После завершения таймера открываем новую вкладку с подтверждением
+                        window.open(redirectUrl, '_blank');
+                    }
+                }, 1000);
+                window.open(redirectUrl, '_blank');
+                
+                
+                // Перезагружаем текущую страницу через 2 секунды
+                setTimeout(function() {
+                    location.reload();
+                }, 2000);
+            },
+            error: function(xhr, status, error) {
+                alert('Произошла ошибка: ' + error); // Показываем сообщение об ошибке
+            }
+        });
+    });  
 
     function calculateTotalCost(selectedTimesByHall) {
         let totalCost = 0;
@@ -209,9 +211,20 @@ $(document).ready(function() {
 
     $('#hall-select').change(function() {
         const selectedHallId = $(this).val();
+        resetBookingParams();
         loadScheduleTable(selectedHallId);
     });
 });
+
+
+function resetBookingParams() {
+    date = null;
+    time = null;
+    hallId = null;
+    selectedTimesByHall = {};
+    $('#booking-info').empty(); // Очистка информации о бронировании на странице
+    $('#totalCost').empty(); // Очистка информации о стоимости на странице
+}
 
 
 //Заглушка для вызова функции оплаты (Возвращает на данный момент ошику оплаты)

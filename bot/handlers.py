@@ -125,7 +125,10 @@ def select_end_time(update, context):
         print(f"Error creating booking: {e}")
         update.callback_query.message.reply_text("Произошла ошибка при создании бронирования. Пожалуйста, попробуйте еще раз позже.")
         return ConversationHandler.END
-    
+
+def handle_text_message(update, context):
+    # Отправить стандартное сообщение в ответ на текстовое сообщение
+    update.message.reply_text("Извините, я не могу обработать ваш запрос. Пожалуйста, используйте доступные команды.") 
 
 def setup_handlers(updater, db):
     dp = updater.dispatcher
@@ -153,6 +156,8 @@ def setup_handlers(updater, db):
 
     dp.add_handler(conv_handler)
     dp.add_handler(booking_handler)
+    text_handler = MessageHandler(Filters.text & ~Filters.command, handle_text_message)
+    dp.add_handler(text_handler)
 
 
 
