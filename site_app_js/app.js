@@ -187,7 +187,7 @@ async function generateScheduleForDate(date, halls) {
   try {
     const schedule = [];
     const availableSlots = await getAvailableTimeSlotsForDateAndRoom(date, halls);
-    //console.log("Available Slots for Hall", halls, ":", availableSlots); // Выводим доступные слоты для каждого зала в консоль
+    console.log(availableSlots);
     schedule.push({ halls, availableSlots }); 
     return schedule;
   } catch (error) {
@@ -198,13 +198,9 @@ async function generateScheduleForDate(date, halls) {
 
 async function generateScheduleForHall(startDate, endDate, roomId) {
   try {
-    //console.log("Room ID:", roomId);
-    //console.log("Start Date:", startDate.toISOString().split('T')[0]); // Добавлено для отслеживания начальной даты
-    //console.log("End Date:", endDate.toISOString().split('T')[0]); // Добавлено для отслеживания конечной даты
     const scheduleForHall = [];
     const currentDate = new Date(startDate);
     while (currentDate <= endDate) {
-      //console.log("Current Date:", currentDate.toISOString().split('T')[0]); // Добавлено для отслеживания текущей даты
       const scheduleForDate = await generateScheduleForDate(currentDate.toISOString().split('T')[0], roomId);
       scheduleForHall.push({ date: currentDate.toISOString().split('T')[0], scheduleForDate });
       currentDate.setDate(currentDate.getDate() + 1);
@@ -236,8 +232,8 @@ app.get('/booking', async (req, res) => {
       const scheduleForHall = await generateScheduleForHall(currentDate, endOfWeek, hall.id);
       schedule.push({ hall, scheduleForHall });
     }
-    
-    //printObject(schedule);
+    //console.log(schedule);
+    printObject(schedule);
     
     res.render('booking', { schedule });
   } catch (error) {
